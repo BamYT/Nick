@@ -1,0 +1,8 @@
+name: BamNick
+author: KCodeYT
+main: KCodeYT\BamNick
+version: 1.0.0
+api: 1.14.0
+commands:
+    nick:
+        description: "Nick Comamand"
