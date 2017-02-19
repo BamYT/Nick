@@ -23,14 +23,15 @@ class BamNick extends PluginBase implements Listener {
 	public function onEnable() {
 		
 		@mkdir($this->getDataFolder());
-		@mkdir($this->getDataFolder() . "/Player/");
+		@mkdir($this->getDataFolder() . "Players");
 		
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->getLogger()->info($this->prefix . TextFormat::GREEN . "Aktiviert!");
 		
 	}
 	
 	public function getActiveNick($name) {
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
 		if(!$pf->exists("nick")) {
 			$pf->set("nick", false);
 			$pf->save();
@@ -41,7 +42,7 @@ class BamNick extends PluginBase implements Listener {
 	}
 	
 	public function setNickActive($name, bool $value) {
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
 		if(!$pf->exists("nick")) {
 			$pf->set("nick", false);
 			$pf->save();
@@ -53,7 +54,7 @@ class BamNick extends PluginBase implements Listener {
 	}
 	
 	public function getNick($name) {
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
 		if(!$pf->exists("nick")) {
 			$pf->set("nick", false);
 			$pf->save();
@@ -69,13 +70,9 @@ class BamNick extends PluginBase implements Listener {
         $config = new Config($this->getDataFolder()."config.yml", Config::YAML);
         $player = $event->getPlayer();
         $item = $player->getInventory()->getItemInHand();
-        if($item->getCustomName() == TextFormat::GOLD . "Nick: " . TextFormat::GREEN . "AN"){
-            
-			$this->getServer()->dispatchCommand($player, "nick");
+        
+		if($item->getCustomName() == TextFormat::GRAY . "| " . TextFormat::GOLD . "NICKEN" . TextFormat::GRAY . " |") {
 			
-		}
-		if($item->getCustomName() == TextFormat::GOLD . "Nick: " . TextFormat::RED . "AUS"){
-            
 			$this->getServer()->dispatchCommand($player, "nick");
 			
 		}
@@ -86,17 +83,17 @@ class BamNick extends PluginBase implements Listener {
 		$player = $event->getPlayer();
 		$name = $player->getName();
 		
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
+		
+		if($pf->get("nick") == null) {
+			$pf->set("nick", false);
+			$pf->save();
+		}
 		
 		$inv = $player->getInventory();
 		
 		$item1 = Item::get(Item::NETHER_STAR);
-		if($this->getActiveNick($name)) {
-			$n = TextFormat::GREEN . "AN";
-		} else {
-			$n = TextFormat::RED . "AUS";
-		}
-        $item1->setCustomName(TextFormat::GOLD . "Nick: " . $n);
+        $item1->setCustomName(TextFormat::GRAY . "| " . TextFormat::GOLD . "NICKEN" . TextFormat::GRAY . " |");
 		
 		$inv->setItem(5, $item1);
 		
@@ -108,7 +105,7 @@ class BamNick extends PluginBase implements Listener {
 		
 		$msg = $event->getMessage();
 		
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
 		
 		if($pf->exists("nickname")) {
 			
@@ -121,36 +118,24 @@ class BamNick extends PluginBase implements Listener {
 	public function onCommand(CommandSender $sender, Command $cmd, $label, array $args) {
 		$p = $sender;
 		$name = $p->getName();
-		$pf = new Config($this->getDataFolder() . "/Players/" . strtolower($name) . ".yml", Config::YAML);
+		$pf = new Config($this->getDataFolder() . "Players/" . strtolower($name) . ".yml", Config::YAML);
 		
 		if(strtolower($cmd->getName()) == "nick") {
 			
 			if($p->hasPermission("nick.set")) {
-				
-				if(empty($args[0])) {
 					
-					if($this->getActiveNick($name)) {
+					if($pf->get("nick") == true) {
 						
+						$pf->set("nick", false);
 						$pf->remove("nickname");
 						$pf->save();
-						$p->sendMessage($this->prefix . TextFormat::RED . "du bist nun nicht mehr genickt");
+						$p->sendMessage($this->prefix . TextFormat::RED . "Du bist nun nicht mehr genickt");
 						
-					} else {
-					
-					$m = $args[0];
-					
-					$pf->set("nickname", $m);
-					$pf->save();
-					
-					$p->sendMessage($this->prefix . TextFormat::GREEN . "Du bist genickt mit dem nick: " . TextFormat::GOLD . $m);
-					}
-					
-				} else {
-					if($this->getActiveNick($name)) {
+						$pc = $this->getServer()->getPluginManager()->getPlugin("PureChat");
 						
-						$pf->remove("nickname");
-						$pf->save();
-						$p->sendMessage($this->prefix . TextFormat::RED . "du bist nun nicht mehr genickt");
+						$nameTag = $pc->getNametag($p);
+						
+						$p->setNameTag($nameTag);
 						
 					} else {
 					
@@ -169,18 +154,90 @@ class BamNick extends PluginBase implements Listener {
 					"TIMEtoNOW",
 					"Ungeheuer",
 					"SpielenderSpieler",
-					"GlumanderPoke"
+					"GlumanderPoke",
+					"Billybobjoepants",
+					"BioShock_Rules",
+					"Blanzer",
+					"Bob-Omb",
+					"bosky2102",
+					"Brendan170",
+					"broswen",
+					"Btrpo",
+					"bubbyboytoo",
+					"DaBomb",
+					"Darvince",
+					"DaSnipeKid",
+					"Dawnofdusk",
+					"De_n00bWOLF",
+					"DeepDarkSamurai",
+					"DefaultAsAwesome",
+					"diamondhand146",
+					"DirtDog",
+					"DivinityV2",
+					"DontStealMyBacon",
+					"Draconus",
+					"Dylanf3",
+					"Madisonwilleatu",
+					"lexodexode",
+					"BluplayzYT",
+					"mangadj",
+					"marett",
+					"Mayahem",
+					"Meman5000",
+					"MinecraftMasterz",
+					"MineMan_620",
+					"MisterModerator",
+					"Muro45",
+					"SavageClown",
+					"Schmoople",
+					"ScrooLewse",
+					"scyp10",
+					"Serus Haralain",
+					"Traveler",
+					"silverboyp",
+					"Snerus",
+					"lexodexode",
+					"BluplayzYT",
+					"Space_Walker",
+					"SpeedyAstro",
+					"Syfaro",
+					"Synchrophi",
+					"RandomIdoit",
+					"Redwild10",
+					"Rochambo",
+					"roebuck",
+					"RtYyU36",
+					"runnerman1",
+					"SavageClown",
+					"Schmoople",
+					"ScrooLewse",
+					"lexodexode",
+					"BluplayzYT",
+					"scyp10",
+					"Serus Haralain",
+					"silverboyp",
+					"Snerus",
+					"Space_Walker",
+					"SpeedyAstro",
+					"Syfaro",
+					"Synchrophi",
+					"CraftNichtKlinik",
+					"DeveloperxD",
+					"DevxDPlayerxD",
+					"Der_nicht_genickte_HD"
 					);
 					
 					$m = mt_rand(1, count($nicks) - 1);
 					
-					$pf->set("nickname", $m);
+					$pf->set("nick", true);
+					$pf->set("nickname", $nicks[$m]);
 					$pf->save();
 					
-					}
-					$p->sendMessage($this->prefix . TextFormat::GREEN . "Du bist genickt mit dem nick: " . TextFormat::GOLD . $m);
+					$p->sendMessage($this->prefix . TextFormat::GREEN . "Du bist genickt mit dem nick: " . TextFormat::GOLD . $nicks[$m]);
 					
-				}
+					$p->setNameTag(TextFormat::GRAY . "[" . TextFormat::GOLD . "Spieler" . TextFormat::GRAY . "] " . TextFormat::WHITE . $nicks[$m]);
+					
+					}
 				
 			} else {
 				
